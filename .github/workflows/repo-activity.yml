@@ -26,19 +26,19 @@ jobs:
           # Set event specific details
           case "${{ github.event_name }}" in
             "push")
-              echo "EVENT_DETAILS=Branch: ${{ github.ref_name }}
-              Commit: ${{ github.sha }}
-              Message: ${{ github.event.head_commit.message }}" >> $GITHUB_ENV
+              echo "EVENT_DETAILS=Branch: ${{ github.ref_name }}" >> $GITHUB_ENV
+              echo "EVENT_DETAILS_COMMIT=Commit: ${{ github.sha }}" >> $GITHUB_ENV
+              echo "EVENT_DETAILS_MSG=Message: ${{ github.event.head_commit.message }}" >> $GITHUB_ENV
               ;;
             "pull_request")
-              echo "EVENT_DETAILS=PR #${{ github.event.pull_request.number }}
-              Title: ${{ github.event.pull_request.title }}
-              State: ${{ github.event.pull_request.state }}" >> $GITHUB_ENV
+              echo "EVENT_DETAILS=PR #${{ github.event.pull_request.number }}" >> $GITHUB_ENV
+              echo "EVENT_DETAILS_TITLE=Title: ${{ github.event.pull_request.title }}" >> $GITHUB_ENV
+              echo "EVENT_DETAILS_STATE=State: ${{ github.event.pull_request.state }}" >> $GITHUB_ENV
               ;;
             "issues")
-              echo "EVENT_DETAILS=Issue #${{ github.event.issue.number }}
-              Title: ${{ github.event.issue.title }}
-              State: ${{ github.event.issue.state }}" >> $GITHUB_ENV
+              echo "EVENT_DETAILS=Issue #${{ github.event.issue.number }}" >> $GITHUB_ENV
+              echo "EVENT_DETAILS_TITLE=Title: ${{ github.event.issue.title }}" >> $GITHUB_ENV
+              echo "EVENT_DETAILS_STATE=State: ${{ github.event.issue.state }}" >> $GITHUB_ENV
               ;;
             *)
               echo "EVENT_DETAILS=Event occurred in ${{ github.repository }}" >> $GITHUB_ENV
@@ -59,5 +59,9 @@ jobs:
             
             *Details:*
             ${{ env.EVENT_DETAILS }}
+            ${{ env.EVENT_DETAILS_COMMIT }}
+            ${{ env.EVENT_DETAILS_MSG }}
+            ${{ env.EVENT_DETAILS_TITLE }}
+            ${{ env.EVENT_DETAILS_STATE }}
             
             [View on GitHub](https://github.com/${{ github.repository }}) 
