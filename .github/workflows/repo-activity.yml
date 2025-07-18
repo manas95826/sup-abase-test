@@ -1,0 +1,47 @@
+name: Repository Activity Monitor
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  issues:
+    types: [opened, closed, reopened]
+  pull_request_review:
+    types: [submitted]
+  discussion:
+    types: [created]
+  workflow_dispatch:  # Manual trigger option
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get event details
+        id: event_info
+        run: |
+          echo "EVENT_TYPE=${{ github.event_name }}" >> $GITHUB_ENV
+          echo "ACTOR=${{ github.actor }}" >> $GITHUB_ENV
+          echo "REPO=${{ github.repository }}" >> $GITHUB_ENV
+
+      - name: Send notification
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          format: markdown
+          message: |
+            🔔 *New Activity in ${{ env.REPO }}*
+            
+            *Event Type:* ${{ env.EVENT_TYPE }}
+            *Actor:* ${{ env.ACTOR }}
+            
+            *Details:*
+            ```
+            ${{ toJSON(github.event) }}
+            ```
+            
+            [View Repository](https://github.com/${{ env.REPO }}) 
