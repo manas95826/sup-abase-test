@@ -11,7 +11,7 @@ on:
     types: [submitted]
   discussion:
     types: [created]
-  workflow_dispatch:  # Manual trigger option
+  workflow_dispatch:
 
 jobs:
   notify:
@@ -20,12 +20,30 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Get event details
-        id: event_info
+      - name: Generate notification message
+        id: generate_message
         run: |
-          echo "EVENT_TYPE=${{ github.event_name }}" >> $GITHUB_ENV
-          echo "ACTOR=${{ github.actor }}" >> $GITHUB_ENV
-          echo "REPO=${{ github.repository }}" >> $GITHUB_ENV
+          # Set event specific details
+          case "${{ github.event_name }}" in
+            "push")
+              echo "EVENT_DETAILS=Branch: ${{ github.ref_name }}
+              Commit: ${{ github.sha }}
+              Message: ${{ github.event.head_commit.message }}" >> $GITHUB_ENV
+              ;;
+            "pull_request")
+              echo "EVENT_DETAILS=PR #${{ github.event.pull_request.number }}
+              Title: ${{ github.event.pull_request.title }}
+              State: ${{ github.event.pull_request.state }}" >> $GITHUB_ENV
+              ;;
+            "issues")
+              echo "EVENT_DETAILS=Issue #${{ github.event.issue.number }}
+              Title: ${{ github.event.issue.title }}
+              State: ${{ github.event.issue.state }}" >> $GITHUB_ENV
+              ;;
+            *)
+              echo "EVENT_DETAILS=Event occurred in ${{ github.repository }}" >> $GITHUB_ENV
+              ;;
+          esac
 
       - name: Send notification
         uses: appleboy/telegram-action@master
@@ -34,14 +52,12 @@ jobs:
           token: ${{ secrets.TELEGRAM_TOKEN }}
           format: markdown
           message: |
-            🔔 *New Activity in ${{ env.REPO }}*
+            🔔 *New Activity in ${{ github.repository }}*
             
-            *Event Type:* ${{ env.EVENT_TYPE }}
-            *Actor:* ${{ env.ACTOR }}
+            *Type:* ${{ github.event_name }}
+            *Actor:* ${{ github.actor }}
             
             *Details:*
-            ```
-            ${{ toJSON(github.event) }}
-            ```
+            ${{ env.EVENT_DETAILS }}
             
-            [View Repository](https://github.com/${{ env.REPO }}) 
+            [View on GitHub](https://github.com/${{ github.repository }}) 
